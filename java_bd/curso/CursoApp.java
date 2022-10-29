@@ -1,199 +1,155 @@
 package java_bd.curso;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
+
 import java.util.List;
-import java_bd.Dao;
+import javax.swing.JOptionPane;
 
-
-public class DaoCurso extends Dao<Curso> {
-
-	@Override
-	public List<Curso> listar() {
-		
-		List <Curso> lista = new ArrayList<>();	
-		
-		try {
-						
-			Statement estamento = criaConexao().createStatement();	
-			ResultSet result = estamento.executeQuery("SELECT * FROM cursos order by id_curso ASC");
-						
-			while(result.next()) {
-				
-				Curso curso = new Curso();
-				
-				curso.setId_curso(result.getInt("id_curso"));
-				curso.setNome(result.getString("nome"));
-				curso.setValor(result.getString("valor"));
-				curso.setUrl(result.getString("url"));
-								
-				lista.add(curso);
-			}		
-		}		
-		catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
-		return lista;
-	}
-
-	@Override
-	public void inserir(Curso curso) {
-		
-		try {
-			
-			PreparedStatement stmt = criaConexao().prepareStatement(
-				"INSERT INTO cursos (nome, valor, url) values (?,?,?)",
-				Statement.RETURN_GENERATED_KEYS);
-			
-				stmt.setString(1, curso.getNome());
-				stmt.setString(2, curso.getValor());
-				stmt.setString(3, curso.getUrl());								
-				stmt.executeUpdate();    
-				
-			    ResultSet rs = stmt.getGeneratedKeys();
-			        
-			    while (rs.next())
-			    	curso.setId_curso(rs.getInt(1));
-			    	
-			    stmt.close();									
-		}
-		catch (SQLException e) {			
-			e.printStackTrace();
-		}		
-		
-	}
+public class CursoApp {
 	
-	public boolean consultaCurso(String nome) {
-		
-		try {
-			
-			Statement estamento = criaConexao().createStatement();	
-			ResultSet result = estamento.executeQuery("SELECT count(id_curso) "
-					+ "as quantidade FROM cursos WHERE nome='"+nome+"'");
-				
-			if(result.next()) {
-								
-				if(result.getInt("quantidade")>0)
-					return true;			
-			}		
-		}		
-		catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
-		return false;		
-	}
-
-	@Override
-	public boolean deletar(Curso curso) {
-		
-		try {
-			
-			if(!consultaCurso(curso.getNome()))
-				return false;
-			
-			PreparedStatement stmt = criaConexao().prepareStatement(
-						"DELETE from cursos WHERE id_curso=?");
-			
-			stmt.setInt(1, curso.getId_curso());	
-			
-			stmt.executeUpdate();    
-
-		    stmt.close();
-		}
-		catch (SQLException e) {			
-			
-			e.printStackTrace();
-			return false;
-		}
-		
-		return true;
-	}
-
-	@Override
-	public boolean atualizar(Curso curso) {
-		
-		try {
-			
-			PreparedStatement stmt = criaConexao().prepareStatement(
-						"UPDATE cursos SET nome=?, valor=?, url=? WHERE id_curso=?");
-			
-			stmt.setString(1, curso.getNome());
-			stmt.setString(2, curso.getValor());
-			stmt.setString(3, curso.getUrl());
-			stmt.setInt(4, curso.getId_curso());	
-			
-			stmt.executeUpdate();    
-
-		    stmt.close();
-		}
-		catch (SQLException e) {			
-			
-			e.printStackTrace();
-			return false;
-		}
-		
-		return true;
-	}
+	private DaoCurso daoCurso;
+	private Curso curso;
 	
-	public Curso listagemPorNome(String nome) {
+	private String nome;
+	private String valor;
+	private String url;
+	
+	public CursoApp() {
+		daoCurso = new DaoCurso();
+		curso = new Curso();		
+	}
+
+	public void iniciar() {
 		
-		Curso curso = null;
+		CursoApp curso = new CursoApp();
 		
-		try {
+		String option = "";
+				
+		while (!option.equalsIgnoreCase("Sair")) {
 			
-			Statement estamento = criaConexao().createStatement();	
-			ResultSet result = estamento.executeQuery("SELECT * FROM cursos where nome='"+nome+"'");
+			String[] opcao = { "Mostrar todos os cursos", "Cadastrar novo curso", 
+					"Atualizar informações de curso", "Deletar curso", "Sair" };
+			
+			Object escolha = JOptionPane.showInputDialog(null,
+		             "Escolha a operação:", "Sistema de gerenciamento de cursos",
+		             JOptionPane.INFORMATION_MESSAGE, null,
+		             opcao, opcao[0]);
+			
+			option = escolha.toString();
+			
+			switch (option) {
+			
+				case "Mostrar todos os cursos":
 					
-			if(result.next()) {
-				
-				curso = new Curso();
-				
-				curso.setId_curso(result.getInt("id_curso"));
-				curso.setNome(result.getString("nome"));
-				curso.setValor(result.getString("valor"));
-				curso.setUrl(result.getString("url"));
-			}		
-		}		
-		catch (SQLException e) {
+					System.out.println("[1]: Todos os cursos:");
+					curso.mostrarListaCursos();
+					break;
+					
+				case "Cadastrar novo curso":
+					
+					System.out.println("[2]: Novo curso:");
+					cadastrarInfo();			
+					curso.novoCurso(nome, valor, url);
+					break;
+					
+				case "Atualizar informações de curso":
+					
+					System.out.println("[3]: Atualizar informações de curso:");
+					
+					nome = JOptionPane.showInputDialog(null, "Digite nome do curso:", "Cadastro",
+				             JOptionPane.INFORMATION_MESSAGE);	
+					
+					curso.atualizarCurso(nome);
+					break;
+					
+				case "Deletar curso":
+					
+					System.out.println("[4]: Deletar curso:");
+					nome = JOptionPane.showInputDialog(null, "Digite nome do curso:", "Cadastro",
+				             JOptionPane.INFORMATION_MESSAGE);
+					
+					curso.deletarCurso(nome);
+					break;
+									
+				case "Sair":
+					System.out.println("Encerrando...");
+					break;					
+			}
 			
-			e.printStackTrace();
 		}
 		
-		return curso;	
 	}
 	
-	public Curso listagemPorId(int id) {
+	private void cadastrarInfo() {
 		
-		Curso curso = null;
+		nome = JOptionPane.showInputDialog(null, "Digite nome do curso:", "Cadastro",
+	             JOptionPane.INFORMATION_MESSAGE);
+
+		valor = JOptionPane.showInputDialog(null, "Digite o valor do curso em reais (R$):", "Cadastro",
+	             JOptionPane.INFORMATION_MESSAGE);
+				
+		url = JOptionPane.showInputDialog(null, "Digite a url do curso:", "Cadastro",
+	             JOptionPane.INFORMATION_MESSAGE);		
+	}
+	
+	private void mostrarListaCursos() {
 		
-		try {
-			
-			Statement estamento = criaConexao().createStatement();	
-			ResultSet result = estamento.executeQuery("SELECT * FROM cursos where id_curso="+id);
-					
-			if(result.next()) {
-				
-				curso = new Curso();
-				
-				curso.setId_curso(result.getInt("id_curso"));
-				curso.setNome(result.getString("nome"));
-				curso.setValor(result.getString("valor"));
-				curso.setUrl(result.getString("url"));
-			}		
-		}		
-		catch (SQLException e) {
-			
-			e.printStackTrace();
+		List <Curso> lista = daoCurso.listar();
+		
+		System.out.println("*******Nome***********URL********");
+		
+		lista.forEach(e->System.out.println(e.getNome()+" <=> "+e.getUrl()));
+	}
+	
+	private void novoCurso(String nome, String valor,  String url) {
+		
+		 if (daoCurso.consultaCurso(nome)) {
+			 System.out.println("Curso já cadastrado"); 
+			 return;
+		 }
+		 
+		 curso.setNome(nome);
+		 curso.setValor(valor);
+		 curso.setUrl(url);
+		 
+		 daoCurso.inserir(curso);	
+		 
+		 System.out.println("Curso cadastrado com sucesso!");
+	}
+	
+	private void atualizarCurso(String n) {
+		
+		curso = daoCurso.listagemPorNome(n);
+		
+		cadastrarInfo();
+		
+		Curso curso_atual = new Curso();
+		
+		curso_atual.setId_curso(curso.getId_curso());
+		
+		curso_atual.setNome(nome);
+		curso_atual.setValor(valor);
+		curso_atual.setUrl(url);
+		
+		if(daoCurso.atualizar(curso_atual)) {
+			System.out.println("Curso atualizado com sucesso!");
+			return;
 		}
 		
-		return curso;	
+		System.out.println("Não foi possível atualizar.\nTente novamente mais tarde.");			
+		
 	}
+	
+	private void deletarCurso(String nome) {
+		
+		curso = daoCurso.listagemPorNome(nome);
+		
+		if(daoCurso.deletar(curso)){
+			System.out.println("Curso deletado com sucesso!");
+			return;
+		}
+		
+		System.out.println("Não foi possível deletar cliente.\nTente novamente mais tarde.");
+	}
+		
 
 }
 
