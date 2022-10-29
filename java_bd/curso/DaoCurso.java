@@ -169,5 +169,32 @@ public class DaoCurso extends Dao<Curso> {
 		
 		return curso;	
 	}
+	
+	public Curso listagemPorId(int id) {
+		
+		Curso curso = null;
+		
+		try {
+			
+			Statement estamento = criaConexao().createStatement();	
+			ResultSet result = estamento.executeQuery("SELECT * FROM cursos where id_curso="+id);
+					
+			if(result.next()) {
+				
+				curso = new Curso();
+				
+				curso.setId_curso(result.getInt("id_curso"));
+				curso.setNome(result.getString("nome"));
+				curso.setValor(result.getString("valor"));
+				curso.setUrl(result.getString("url"));
+			}		
+		}		
+		catch (SQLException e) {
+			
+			e.printStackTrace();
+		}
+		
+		return curso;	
+	}
 
 }
