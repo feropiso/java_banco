@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 
 import java_bd.cliente.ClienteApp;
 import java_bd.curso.CursoApp;
+import java_bd.pagamento.PagamentoApp;
 
 public class AcessoBD {
 	
@@ -34,7 +35,7 @@ public class AcessoBD {
 		
 		while (!option.equalsIgnoreCase("Sair")) {
 			
-			String[] opcao = { "Clientes", "Cursos", "Informa�oes do BD", "Sair" };
+			String[] opcao = { "Clientes", "Cursos", "Informaçoes de Pagamento", "Informaçoes do BD", "Sair" };
 			
 			Object escolha = JOptionPane.showInputDialog(null,
 		             "Escolha a consulta:", "Cursos Netbiiss",
@@ -56,8 +57,14 @@ public class AcessoBD {
 					CursoApp curso = new CursoApp();					
 					curso.iniciar();
 					break;
+				
+				case "Informaçoes de Pagamento":
 					
-				case "Informa�oes do BD":
+					PagamentoApp pag = new PagamentoApp();					
+					pag.cadastrarPagamento();
+					break;
+					
+				case "Informaçoes do BD":
 					
 					mostrarMetaDados();
 					break;
